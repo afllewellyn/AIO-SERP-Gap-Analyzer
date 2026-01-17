@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "build:extension": "vite build --mode production && npm run copy-extension-files",
-    "copy-extension-files": "cp manifest.json dist/ && cp popup.html dist/ && cp sidepanel.html dist/",
+    "copy-extension-files": "cp src/manifest.json dist/manifest.json && cp popup.html dist/ && cp sidepanel.html dist/",
     "zip": "cd dist && zip -r ../aio-gap-analyzer.zip .",
     "preview": "vite preview"
   },

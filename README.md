@@ -95,10 +95,10 @@ npm run zip
 
 ```
 aio-serp-gap-analyzer/
-├── manifest.json          # Extension manifest
 ├── popup.html            # Popup HTML
 ├── sidepanel.html        # Side panel HTML
 ├── src/
+│   ├── manifest.json     # Extension manifest (copied to dist/)
 │   ├── popup.tsx         # Popup React component
 │   ├── sidepanel.tsx     # Side panel React component
 │   ├── content.ts        # Content script for AI Overview detection

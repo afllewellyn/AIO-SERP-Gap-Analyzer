@@ -1,0 +1,11 @@
+{
+  "name": "aio-gap-analyzer-api",
+  "version": "1.0.0",
+  "main": "analyze.js",
+  "type": "module",
+  "dependencies": {
+    "@mozilla/readability": "^0.5.0",
+    "jsdom": "^23.0.1",
+    "openai": "^4.28.0"
+  }
+}

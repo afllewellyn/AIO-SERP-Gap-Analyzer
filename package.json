@@ -1,0 +1,25 @@
+{
+  "name": "aio-serp-gap-analyzer",
+  "version": "1.0.0",
+  "description": "Chrome extension to analyze gaps between Google AI Overviews and blog content",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:extension": "vite build --mode production && npm run copy-extension-files",
+    "copy-extension-files": "cp manifest.json dist/ && cp popup.html dist/ && cp sidepanel.html dist/",
+    "zip": "cd dist && zip -r ../aio-gap-analyzer.zip .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0"
+  },
+  "author": "Andrew F. Llewellyn"
+}

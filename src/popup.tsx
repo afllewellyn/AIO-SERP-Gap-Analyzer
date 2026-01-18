@@ -68,8 +68,11 @@ const Popup: React.FC = () => {
         }
       });
 
-      // Open side panel to show results
-      chrome.sidePanel.open({ windowId: chrome.windows.WINDOW_ID_CURRENT });
+      // Open side panel for the active tab to avoid WINDOW_ID_CURRENT (-2) errors.
+      const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (activeTab?.id != null) {
+        chrome.sidePanel.open({ tabId: activeTab.id });
+      }
 
     } catch (error) {
       console.error('Analysis error:', error);
@@ -79,8 +82,11 @@ const Popup: React.FC = () => {
     }
   };
 
-  const handleOpenSidePanel = () => {
-    chrome.sidePanel.open({ windowId: chrome.windows.WINDOW_ID_CURRENT });
+  const handleOpenSidePanel = async () => {
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (activeTab?.id != null) {
+      chrome.sidePanel.open({ tabId: activeTab.id });
+    }
   };
 
   const handleClear = () => {

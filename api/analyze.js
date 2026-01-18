@@ -183,9 +183,8 @@ function extractContentFallback(document) {
 }
 
 async function analyzeWithAI(query, aiOverviewText, articleContent, citedSources) {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API;
+  const openai = new OpenAI({ apiKey });
 
   const userPrompt = `Please analyze the gaps between this Google AI Overview and the article content.
 

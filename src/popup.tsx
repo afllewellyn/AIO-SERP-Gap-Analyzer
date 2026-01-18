@@ -40,7 +40,7 @@ const Popup: React.FC = () => {
     setIsLoading(true);
     try {
       // Call the Vercel backend API
-      const response = await fetch('https://your-vercel-app.vercel.app/api/analyze', {
+      const response = await fetch('https://aio-serp-gap-analyzer.vercel.app/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

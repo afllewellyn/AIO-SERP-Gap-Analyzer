@@ -54,6 +54,9 @@ const Popup: React.FC = () => {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded or quota exhausted. Please try again later.');
+        }
         throw new Error('Analysis failed');
       }
 

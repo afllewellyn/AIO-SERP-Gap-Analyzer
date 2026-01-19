@@ -7,6 +7,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX = 5;
+const rateLimitStore = new Map();
+
 const SYSTEM_PROMPT = `You are an expert SEO analyst specializing in Google AI Overview optimization. Your task is to analyze gaps between a Google AI Overview snippet and a blog article to help improve the article's chances of being referenced in future AI Overviews.
 
 Analyze the provided AI Overview text and extracted article content, then provide specific, actionable recommendations for improving the article.
@@ -53,6 +57,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const now = Date.now();
+  const clientId = getClientId(req);
+  if (isRateLimited(clientId, now)) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Retry-After', Math.ceil(RATE_LIMIT_WINDOW_MS / 1000));
+    return res.status(429).json({ error: 'Rate limit exceeded. Please try again shortly.' });
+  }
+
   try {
     const { query, aiOverviewText, citedSources, blogUrl } = req.body;
 
@@ -87,6 +99,10 @@ export default async function handler(req, res) {
     console.error('Analysis error:', error);
 
     let errorMessage = 'Analysis failed';
+    if (error?.status === 429 || error?.code === 'insufficient_quota') {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.status(429).json({ error: 'OpenAI quota exceeded. Check billing or try later.' });
+    }
     if (error.message) {
       errorMessage = error.message;
     } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
@@ -96,6 +112,29 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.status(500).json({ error: errorMessage });
   }
+}
+
+function getClientId(req) {
+  const xff = req.headers['x-forwarded-for'];
+  if (typeof xff === 'string' && xff.length > 0) {
+    return xff.split(',')[0].trim();
+  }
+  return req.socket?.remoteAddress || 'unknown';
+}
+
+function isRateLimited(clientId, now) {
+  const entry = rateLimitStore.get(clientId);
+  if (!entry || now > entry.resetAt) {
+    rateLimitStore.set(clientId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  entry.count += 1;
+  if (entry.count > RATE_LIMIT_MAX) {
+    return true;
+  }
+
+  return false;
 }
 
 async function extractArticleContent(url) {

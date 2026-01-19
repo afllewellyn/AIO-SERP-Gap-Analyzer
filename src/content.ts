@@ -3,7 +3,9 @@
   'use strict';
 
   let lastQuery = '';
+  let lastDetectedQuery = '';
   let isMonitoring = false;
+  let checkTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   // Function to extract search query from URL
   function getSearchQuery(): string {
@@ -134,30 +136,37 @@
     });
   }
 
+  function scheduleCheck(delayMs = 1000) {
+    if (checkTimeoutId) {
+      clearTimeout(checkTimeoutId);
+    }
+    checkTimeoutId = setTimeout(checkForAIOverview, delayMs);
+  }
+
   // Function to check for AI Overview
   function checkForAIOverview() {
     const currentQuery = getSearchQuery();
 
-    if (!currentQuery || currentQuery === lastQuery) {
-      return; // No change in query
+    if (!currentQuery || currentQuery === lastDetectedQuery) {
+      return;
     }
 
-    lastQuery = currentQuery;
+    if (currentQuery !== lastQuery) {
+      lastQuery = currentQuery;
+    }
 
-    // Wait a bit for the page to load
-    setTimeout(() => {
-      const aiContainer = findAIOverviewContainer();
+    const aiContainer = findAIOverviewContainer();
 
-      if (aiContainer) {
-        const aiOverviewText = extractAIOverviewText(aiContainer);
-        const citedSources = extractCitedSources(aiContainer);
+    if (aiContainer) {
+      const aiOverviewText = extractAIOverviewText(aiContainer);
+      const citedSources = extractCitedSources(aiContainer);
 
-        if (aiOverviewText.length > 50) { // Minimum length check
-          console.log('AI Overview detected:', { query: currentQuery, text: aiOverviewText.substring(0, 100) + '...' });
-          storeAIOverviewData(currentQuery, aiOverviewText, citedSources);
-        }
+      if (aiOverviewText.length > 50) { // Minimum length check
+        console.log('AI Overview detected:', { query: currentQuery, text: aiOverviewText.substring(0, 100) + '...' });
+        storeAIOverviewData(currentQuery, aiOverviewText, citedSources);
+        lastDetectedQuery = currentQuery;
       }
-    }, 2000); // Wait 2 seconds for dynamic content to load
+    }
   }
 
   // Start monitoring
@@ -165,34 +174,16 @@
     if (isMonitoring) return;
     isMonitoring = true;
 
-    // Check immediately
-    checkForAIOverview();
+    // Check shortly after load to allow dynamic content to render
+    scheduleCheck(2000);
 
     // Set up observers for dynamic content changes
     const observer = new MutationObserver((mutations) => {
-      let shouldCheck = false;
-
-      mutations.forEach((mutation) => {
+      for (const mutation of mutations) {
         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          // Check if new content was added that might contain AI Overview
-          for (const node of mutation.addedNodes) {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const element = node as Element;
-              if (element.matches && (
-                element.matches('[data-attrid*="ai"]') ||
-                element.matches('[data-ved]') ||
-                element.textContent?.toLowerCase().includes('ai overview')
-              )) {
-                shouldCheck = true;
-                break;
-              }
-            }
-          }
+          scheduleCheck(1000);
+          break;
         }
-      });
-
-      if (shouldCheck) {
-        setTimeout(checkForAIOverview, 1000);
       }
     });
 
@@ -214,8 +205,9 @@
   setInterval(() => {
     if (window.location.href !== currentUrl) {
       currentUrl = window.location.href;
-      lastQuery = ''; // Reset to allow re-detection on same query
-      setTimeout(checkForAIOverview, 1000);
+      lastQuery = '';
+      lastDetectedQuery = '';
+      scheduleCheck(1000);
     }
   }, 1000);
 })();

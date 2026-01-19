@@ -17,8 +17,11 @@
   function findAIOverviewContainer(): Element | null {
     // Look for common AI Overview selectors (these may change over time)
     const selectors = [
+      '[data-attrid*="ai"]',
       '[data-attrid="ai-overview"]',
+      '[data-attrid="ai_overview"]',
       '[data-ved*="ai-overview"]',
+      '[aria-label*="AI Overview"]',
       '.ai-overview',
       '#ai-overview',
       '[jsname*="ai-overview"]',
@@ -72,9 +75,13 @@
     const hasStructuredContent = element.querySelectorAll('h3, h4, p, ul, ol').length > 2;
 
     // Check for citation links (common in AI Overviews)
-    const hasCitations = element.querySelectorAll('a[href*="google.com/url"]').length > 0;
+    const hasCitations = element.querySelectorAll('a[href]').length > 0;
 
-    return hasAIIndicator || (hasStructuredContent && hasCitations);
+    // Check for attribute hints if the label text isn't present.
+    const hasAiAttr = element.matches?.('[data-attrid*="ai"]') ||
+      element.querySelector?.('[data-attrid*="ai"], [aria-label*="AI Overview"]');
+
+    return hasAIIndicator || !!hasAiAttr || (hasStructuredContent && hasCitations);
   }
 
   // Function to extract AI Overview text

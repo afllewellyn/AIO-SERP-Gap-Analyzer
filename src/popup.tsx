@@ -17,11 +17,12 @@ const Popup: React.FC = () => {
 
   useEffect(() => {
     // Check for stored AIO data
-    chrome.storage.local.get(['aioData'], (result) => {
-      if (result.aioData) {
-        setAioData(result.aioData);
+    chrome.storage.local.get(['aioData'], (result: { aioData?: AIOData }) => {
+      const stored = result.aioData;
+      if (stored) {
+        setAioData(stored);
         setStatus('aio-detected');
-        setCurrentQuery(result.aioData.query);
+        setCurrentQuery(stored.query);
       }
     });
 

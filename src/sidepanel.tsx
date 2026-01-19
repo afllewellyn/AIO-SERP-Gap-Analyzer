@@ -33,7 +33,7 @@ const SidePanel: React.FC = () => {
 
   useEffect(() => {
     // Load stored data
-    chrome.storage.local.get(['aioData', 'analysisResult'], (result) => {
+    chrome.storage.local.get(['aioData', 'analysisResult'], (result: { aioData?: AIOData; analysisResult?: AnalysisResult }) => {
       if (result.aioData) {
         setAioData(result.aioData);
       }

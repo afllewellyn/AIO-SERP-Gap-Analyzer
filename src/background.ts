@@ -1,5 +1,5 @@
 // Background script for AIO Gap Analyzer
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _, __) => {
   if (message.action === 'storeAIOData') {
     // Store AI Overview data
     chrome.storage.local.set({

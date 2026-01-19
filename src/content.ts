@@ -83,6 +83,9 @@
     // Remove citation superscripts and links
     clonedContainer.querySelectorAll('sup, .citation, [role="link"]').forEach(el => el.remove());
 
+    // Remove scripts/styles that can pollute the extracted text
+    clonedContainer.querySelectorAll('script, style, noscript').forEach(el => el.remove());
+
     // Remove Google-specific elements
     clonedContainer.querySelectorAll('[data-ved], [jsname], [jscontroller]').forEach(el => el.remove());
 

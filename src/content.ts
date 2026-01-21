@@ -81,7 +81,12 @@
     const hasAiAttr = element.matches?.('[data-attrid*="ai"]') ||
       element.querySelector?.('[data-attrid*="ai"], [aria-label*="AI Overview"]');
 
-    return hasAIIndicator || !!hasAiAttr || (hasStructuredContent && hasCitations);
+    // NEW: Check for the specific current Google AI Overview attributes
+    const hasCurrentAiAttr = element.getAttribute('data-al') === 'AI overview is ready' ||
+                           element.classList.contains('EyBRub') ||
+                           element.id === 'dEwkXc';
+
+    return hasAIIndicator || !!hasAiAttr || hasCurrentAiAttr || (hasStructuredContent && hasCitations);
   }
 
   // Function to extract AI Overview text

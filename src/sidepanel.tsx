@@ -41,6 +41,21 @@ const SidePanel: React.FC = () => {
         setAnalysisResult(result.analysisResult);
       }
     });
+
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (changes.aioData) {
+        setAioData(changes.aioData.newValue || null);
+      }
+      if (changes.analysisResult) {
+        setAnalysisResult(changes.analysisResult.newValue || null);
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
   }, []);
 
   const handleCopyAIO = () => {

@@ -100,8 +100,12 @@
     // Remove scripts/styles that can pollute the extracted text
     clonedContainer.querySelectorAll('script, style, noscript').forEach(el => el.remove());
 
-    // Remove Google-specific elements
-    clonedContainer.querySelectorAll('[data-ved], [jsname], [jscontroller]').forEach(el => el.remove());
+    // Strip Google-specific attributes without removing content nodes.
+    clonedContainer.querySelectorAll('[data-ved], [jsname], [jscontroller]').forEach(el => {
+      el.removeAttribute('data-ved');
+      el.removeAttribute('jsname');
+      el.removeAttribute('jscontroller');
+    });
 
     // Extract clean text
     const text = clonedContainer.textContent?.trim() || '';
@@ -211,6 +215,12 @@
   } else {
     startMonitoring();
   }
+
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message?.action === 'checkAIO') {
+      scheduleCheck(500);
+    }
+  });
 
   // Also check when URL changes (SPA navigation)
   let currentUrl = window.location.href;

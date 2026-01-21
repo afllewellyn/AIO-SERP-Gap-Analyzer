@@ -26,13 +26,38 @@ const Popup: React.FC = () => {
       }
     });
 
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (changes.aioData?.newValue) {
+        const stored = changes.aioData.newValue as AIOData;
+        setAioData(stored);
+        setStatus('aio-detected');
+        setCurrentQuery(stored.query);
+      }
+      if (changes.aioData?.newValue === undefined) {
+        setAioData(null);
+        setStatus('no-aio');
+        setCurrentQuery('');
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
     // Get current tab URL to pre-fill blog URL
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const url = tabs[0]?.url;
       if (url && !url.includes('google.com')) {
         setBlogUrl(url);
       }
+
+      // Trigger a fresh AI Overview check on the active tab.
+      if (tabs[0]?.id != null) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'checkAIO' });
+      }
     });
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
   }, []);
 
   const handleRunAnalysis = async () => {

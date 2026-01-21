@@ -44,10 +44,12 @@ const SidePanel: React.FC = () => {
 
     const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
       if (changes.aioData) {
-        setAioData(changes.aioData.newValue || null);
+        const newAio = changes.aioData.newValue as AIOData | null;
+        setAioData(newAio ?? null);
       }
       if (changes.analysisResult) {
-        setAnalysisResult(changes.analysisResult.newValue || null);
+        const newAnalysis = changes.analysisResult.newValue as AnalysisResult | null;
+        setAnalysisResult(newAnalysis ?? null);
       }
     };
 

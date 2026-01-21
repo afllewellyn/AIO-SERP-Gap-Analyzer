@@ -17,9 +17,11 @@
   function findAIOverviewContainer(): Element | null {
     // Look for common AI Overview selectors (these may change over time)
     const selectors = [
-      '[data-attrid*="ai"]',
+      '[data-attrid^="ai"]',
       '[data-attrid="ai-overview"]',
       '[data-attrid="ai_overview"]',
+      '[data-attrid*="ai-overview"]',
+      '[data-attrid*="ai_overview"]',
       '[data-ved*="ai-overview"]',
       '[aria-label*="AI Overview"]',
       '.ai-overview',
@@ -32,13 +34,20 @@
       'div:contains("AI-Generated Overview")',
     ];
 
+    let bestElement: Element | null = null;
+    let bestLength = 0;
+
     for (const selector of selectors) {
       try {
         const elements = document.querySelectorAll(selector);
         for (const element of elements) {
           // Additional checks to confirm it's an AI Overview
           if (isLikelyAIOverview(element)) {
-            return element;
+            const text = extractAIOverviewText(element);
+            if (isValidAioText(text) && text.length > bestLength) {
+              bestElement = element;
+              bestLength = text.length;
+            }
           }
         }
       } catch (e) {
@@ -50,11 +59,15 @@
     const allDivs = document.querySelectorAll('div');
     for (const div of allDivs) {
       if (isLikelyAIOverview(div)) {
-        return div;
+        const text = extractAIOverviewText(div);
+        if (isValidAioText(text) && text.length > bestLength) {
+          bestElement = div;
+          bestLength = text.length;
+        }
       }
     }
 
-    return null;
+    return bestElement;
   }
 
   // Function to check if an element is likely an AI Overview
@@ -78,8 +91,8 @@
     const hasCitations = element.querySelectorAll('a[href]').length > 0;
 
     // Check for attribute hints if the label text isn't present.
-    const hasAiAttr = element.matches?.('[data-attrid*="ai"]') ||
-      element.querySelector?.('[data-attrid*="ai"], [aria-label*="AI Overview"]');
+    const hasAiAttr = element.matches?.('[data-attrid^="ai"]') ||
+      element.querySelector?.('[data-attrid^="ai"], [data-attrid*="ai-overview"], [data-attrid*="ai_overview"], [aria-label*="AI Overview"]');
 
     // NEW: Check for the specific current Google AI Overview attributes
     const hasCurrentAiAttr = element.getAttribute('data-al') === 'AI overview is ready' ||
@@ -111,7 +124,32 @@
     const text = clonedContainer.textContent?.trim() || '';
 
     // Clean up extra whitespace
-    return text.replace(/\s+/g, ' ').trim();
+    return normalizeAioText(text);
+  }
+
+  function normalizeAioText(text: string): string {
+    return text
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function isValidAioText(text: string): boolean {
+    if (!text) return false;
+    const lower = text.toLowerCase();
+    const blockedPhrases = [
+      'give feedback',
+      'feedback on',
+      'report inappropriate',
+      'dismiss',
+      'see more',
+      'delete',
+    ];
+    if (blockedPhrases.some((phrase) => lower.includes(phrase))) {
+      return false;
+    }
+    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    return wordCount >= 15;
   }
 
   // Function to extract cited sources

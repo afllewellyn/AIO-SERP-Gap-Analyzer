@@ -49,9 +49,13 @@ const Popup: React.FC = () => {
         setBlogUrl(url);
       }
 
-      // Trigger a fresh AI Overview check on the active tab.
-      if (tabs[0]?.id != null) {
-        chrome.tabs.sendMessage(tabs[0].id, { action: 'checkAIO' });
+      // Trigger a fresh AI Overview check only on Google tabs.
+      if (tabs[0]?.id != null && url && url.includes('google.')) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'checkAIO' }, () => {
+          if (chrome.runtime.lastError) {
+            // Ignore missing receiver errors on non-injected pages.
+          }
+        });
       }
     });
 
@@ -96,12 +100,6 @@ const Popup: React.FC = () => {
           query: aioData.query,
         }
       });
-
-      // Open side panel for the active tab to avoid WINDOW_ID_CURRENT (-2) errors.
-      const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (activeTab?.id != null) {
-        chrome.sidePanel.open({ tabId: activeTab.id });
-      }
 
     } catch (error) {
       console.error('Analysis error:', error);

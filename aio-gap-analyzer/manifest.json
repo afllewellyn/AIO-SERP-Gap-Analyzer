@@ -4,12 +4,13 @@
   "version": "1.0.0",
   "description": "Analyze gaps between Google AI Overviews and blog content to improve SEO performance",
   "permissions": [
-    "storage",
     "activeTab",
+    "storage",
     "sidePanel"
   ],
   "host_permissions": [
-    "https://*/*"
+    "https://www.google.com/*",
+    "https://aio-serp-gap-analyzer.vercel.app/*"
   ],
   "background": {
     "service_worker": "background.js"
